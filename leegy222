@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오목 게임</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            grid-template-rows: repeat(15, 40px);
+            gap: 2px;
+        }
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: #f0d9b5;
+            border: 1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 32px;
+        }
+        .black {
+            color: black;
+        }
+        .white {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="board" id="board"></div>
+
+<script>
+    const boardElement = document.getElementById('board');
+    const size = 15;  // 15x15 오목판
+    let board = Array(size).fill().map(() => Array(size).fill(null));  // 빈 배열로 보드 생성
+    let currentPlayer = 'black';  // 현재 플레이어는 흑돌부터 시작
+
+    // 보드 그리기
+    function drawBoard() {
+        boardElement.innerHTML = '';  // 기존 보드 초기화
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', () => placeStone(x, y));
+                if (board[y][x] === 'black') {
+                    cell.classList.add('black');
+                    cell.textContent = '●';
+                } else if (board[y][x] === 'white') {
+                    cell.classList.add('white');
+                    cell.textContent = '○';
+                }
+                boardElement.appendChild(cell);
+            }
+        }
+    }
+
+    // 돌을 두는 함수
+    function placeStone(x, y) {
+        if (board[y][x] !== null) return;  // 이미 돌이 있는 곳에는 못 둠
+        board[y][x] = currentPlayer;
+        drawBoard();
+        if (checkWin(x, y)) {
+            setTimeout(() => alert(`${currentPlayer === 'black' ? '흑돌' : '백돌'} 승리!`), 10);
+            resetGame();
+        } else {
+            currentPlayer = currentPlayer === 'black' ? 'white' : 'black';  // 플레이어 교체
+        }
+    }
+
+    // 승리 조건 체크
+    function checkWin(x, y) {
+        return (
+            checkDirection(x, y, 1, 0) ||  // 가로
+            checkDirection(x, y, 0, 1) ||  // 세로
+            checkDirection(x, y, 1, 1) ||  // 대각선 \
+            checkDirection(x, y, 1, -1)    // 대각선 /
+        );
+    }
+
+    // 방향 체크 함수 (dx, dy로 방향을 설정)
+    function checkDirection(x, y, dx, dy) {
+        let count = 1;  // 현재 놓은 돌 포함
+        let color = board[y][x];
+
+        // 한 방향으로 카운트 증가
+        for (let i = 1; i < 5; i++) {
+            const nx = x + dx * i;
+            const ny = y + dy * i;
+            if (nx >= 0 && nx < size && ny >= 0 && ny < size && board[ny][nx] === color) {
+                count++;
+            } else {
+                break;
+            }
+        }
+
+        // 반대 방향으로 카운트 증가
+        for (let i = 1; i < 5; i++) {
+            const nx = x - dx * i;
+            const ny = y - dy * i;
+            if (nx >= 0 && nx < size && ny >= 0 && ny < size && board[ny][nx] === color) {
+                count++;
+            } else {
+                break;
+            }
+        }
+
+        return count >= 5;  // 5개 이상 연속이면 승리
+    }
+
+    // 게임 초기화
+    function resetGame() {
+        board = Array(size).fill().map(() => Array(size).fill(null));
+        drawBoard();
+    }
+
+    drawBoard();  // 처음 보드 그리기
+</script>
+
+</body>
+</html>
