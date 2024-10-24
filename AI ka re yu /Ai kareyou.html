@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI카레유 챗봇</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #chatbot-container {
+            width: 400px;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        #chat-log {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        #chat-log p {
+            margin: 5px 0;
+        }
+        #chat-log .user {
+            text-align: right;
+            color: blue;
+        }
+        #chat-log .bot {
+            text-align: left;
+            color: green;
+        }
+        input[type="text"], button {
+            padding: 10px;
+            margin: 5px;
+            width: calc(100% - 22px);
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chatbot-container">
+    <h2>AI카레유 챗봇</h2>
+    <p>AI카레유는 충청도 챗봇이라 충청도 사투리로 대답해유~</p>
+    
+    <div id="chat-log"></div>
+
+    <input type="text" id="userInput" placeholder="말을 입력해유">
+    <button onclick="sendMessage()">전송해유</button>
+</div>
+
+<script>
+    // 프로그램 실행 시 API Key를 미리 입력받기
+    const apiKey = prompt('OpenAI API Key를 입력해유:');
+
+    if (!apiKey) {
+        alert('API Key가 입력되지 않았어유! 프로그램을 다시 실행해 주세요.');
+        throw new Error('API Key가 입력되지 않았습니다.');
+    }
+
+    async function sendMessage() {
+        const userInput = document.getElementById('userInput').value;
+
+        if (!userInput) {
+            alert('메시지를 입력해유~');
+            return;
+        }
+
+        // 채팅 로그에 사용자 메시지 추가
+        const chatLog = document.getElementById('chat-log');
+        const userMessage = document.createElement('p');
+        userMessage.textContent = userInput;
+        userMessage.classList.add('user');
+        chatLog.appendChild(userMessage);
+        document.getElementById('userInput').value = '';
+
+        try {
+            // OpenAI API 호출
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-3.5-turbo",
+                    messages: [{ role: "user", content: `충청도 사투리로 대답해줘: ${userInput}` }],
+                    max_tokens: 150
+                })
+            });
+
+            const data = await response.json();
+            console.log(data);  // 응답 데이터를 확인하는 로그 추가
+
+            if (response.ok) {
+                const botMessage = document.createElement('p');
+                botMessage.textContent = data.choices[0].message.content.trim();
+                botMessage.classList.add('bot');
+                chatLog.appendChild(botMessage);
+            } else {
+                throw new Error(`API 오류: ${data.error.message}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);  // 오류 메시지 콘솔 출력
+            const errorMessage = document.createElement('p');
+            errorMessage.textContent = `API 호출 중 오류가 발생했어유: ${error.message}`;
+            errorMessage.classList.add('bot');
+            chatLog.appendChild(errorMessage);
+        }
+    }
+</script>
+
+</body>
+</html>
